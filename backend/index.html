@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한줄 댓글 피드</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Application JS -->
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <i class="fa-solid fa-comments logo-icon"></i>
+        <h1>실시간 댓글 피드</h1>
+      </div>
+      <div class="header-right" style="display: flex; gap: 10px; align-items: center;">
+        <button id="db-status-btn" class="icon-btn" aria-label="데이터베이스 설정" title="Supabase 연동 설정">
+          <i class="fa-solid fa-database" id="db-status-icon"></i>
+        </button>
+        <button id="theme-toggle" class="icon-btn" aria-label="테마 전환">
+          <i class="fa-solid fa-sun theme-sun-icon"></i>
+          <i class="fa-solid fa-moon theme-moon-icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Comment Stats -->
+      <section class="comment-stats">
+        <span class="stats-text">전체 댓글 <strong id="comment-count">0</strong>개</span>
+      </section>
+
+      <!-- Comment Write Form -->
+      <section class="comment-write-card">
+        <form id="comment-form" class="comment-form">
+          <div class="input-group">
+            <label for="comment-author"><i class="fa-solid fa-user"></i> 닉네임</label>
+            <input type="text" id="comment-author" placeholder="닉네임 입력" required maxlength="15">
+          </div>
+          <div class="textarea-group">
+            <textarea id="comment-content" placeholder="이곳에 따뜻한 댓글을 남겨주세요..." required maxlength="500"></textarea>
+            <div class="char-counter"><span id="char-count">0</span> / 500</div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">
+              <span>댓글 등록</span>
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Comment List -->
+      <section class="comment-list-section">
+        <div id="comment-list" class="comment-list">
+          <!-- Empty State -->
+          <div class="empty-state" id="empty-state">
+            <i class="fa-regular fa-comment-dots"></i>
+            <p>아직 등록된 댓글이 없습니다.</p>
+            <p class="subtitle">첫 번째 댓글의 주인공이 되어보세요!</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 Live Comment Feed. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- Supabase Setup Modal -->
+  <div class="modal-overlay" id="supabase-setup-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-plug" style="color: var(--color-primary);"></i> Supabase 실시간 연동 설정</h3>
+        <button id="btn-close-supabase-modal" class="close-btn" style="background: none; border: none; cursor: pointer; color: var(--text-light);"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; background: none;">
+        <div style="background: var(--color-primary-light); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          댓글 피드를 Supabase와 연동하여 실시간 데이터베이스로 작동시킵니다.
+        </div>
+        
+        <div class="input-group">
+          <label for="setup-supabase-url">Supabase Project URL</label>
+          <input type="text" id="setup-supabase-url" placeholder="https://xxxxxx.supabase.co">
+        </div>
+        
+        <div class="input-group">
+          <label for="setup-supabase-key">Supabase Anon Key</label>
+          <input type="password" id="setup-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Supabase SQL Editor 실행 스크립트</label>
+          <p style="font-size: 0.75rem; color: var(--text-light); margin: 0 0 6px 0;">SQL Editor에 아래 쿼리를 실행해 `comments` 테이블을 생성하세요.</p>
+          <div style="position: relative; width: 100%;">
+            <textarea id="sql-code-area" readonly style="width: 100%; height: 120px; font-family: monospace; font-size: 0.72rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; resize: none; color: var(--text-muted); outline: none;"></textarea>
+            <button id="btn-copy-sql" style="position: absolute; bottom: 8px; right: 8px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; cursor: pointer;">복사</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: none;">
+        <button id="btn-close-setup-modal" class="btn btn-secondary">취소</button>
+        <button id="btn-connect-supabase" class="btn btn-primary">연동 및 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>
