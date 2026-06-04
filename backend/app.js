@@ -4,10 +4,9 @@
 
 // Supabase Configuration
 // 연동할 Supabase Project URL과 Anon Key를 아래에 기재해 주세요.
-// Vite 환경변수(.env) 파일에 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY로 기재하셔도 작동합니다.
 const SUPABASE_CONFIG = {
-  url: import.meta.env?.VITE_SUPABASE_URL || '실제_SUPABASE_URL_입력',
-  anonKey: import.meta.env?.VITE_SUPABASE_ANON_KEY || '실제_SUPABASE_ANON_KEY_입력'
+  url: import.meta.env?.VITE_SUPABASE_URL || 'https://dwcmlqblozcmotcatmbk.supabase.co',
+  anonKey: import.meta.env?.VITE_SUPABASE_ANON_KEY || 'sb_publishable_cHVx8j3RBquMOPB06-uDJg_Z2TfrJ6w'
 };
 
 let supabase = null;
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadTheme();
     
     // Connect Supabase directly
-    initSupabase();
+    await initSupabase();
 
     if (isSupabaseConnected) {
       await loadSupabaseData();
@@ -48,9 +47,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- Supabase Connection ---
-  function initSupabase() {
-    const url = SUPABASE_CONFIG.url;
-    const key = SUPABASE_CONFIG.anonKey;
+  async function initSupabase() {
+    let url = SUPABASE_CONFIG.url;
+    let key = SUPABASE_CONFIG.anonKey;
+
+    // Fallback: 웹 서버 환경(Live Server 등)에서 .env 파일을 직접 읽어오기 시도
+    if (!url || url === '실제_SUPABASE_URL_입력' || !key || key === '실제_SUPABASE_ANON_KEY_입력') {
+      try {
+        const response = await fetch('.env');
+        if (response.ok) {
+          const text = await response.text();
+          const lines = text.split('\n');
+          lines.forEach(line => {
+            const parts = line.split('=');
+            if (parts.length >= 2) {
+              const k = parts[0].trim();
+              const v = parts.slice(1).join('=').trim();
+              if (k === 'VITE_SUPABASE_URL') url = v;
+              if (k === 'VITE_SUPABASE_ANON_KEY') key = v;
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Could not fetch .env file dynamically:", e);
+      }
+    }
 
     if (url && key && url !== '실제_SUPABASE_URL_입력' && key !== '실제_SUPABASE_ANON_KEY_입력') {
       try {
@@ -170,6 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/'/g, '&#039;');
   }
 
+  // --- Helper Functions ---
   function getAvatarLetter(name) {
     if (!name) return '익';
     return name.trim().charAt(0);
