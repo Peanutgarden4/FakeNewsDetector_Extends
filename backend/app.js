@@ -1,37 +1,17 @@
 /**
- * 한줄 댓글 피드 - Frontend Logic & Supabase Integration
+ * 한줄 댓글 피드 - Frontend Logic & Supabase Integration (Direct Connection)
  */
 
 // Supabase Configuration
+// 연동할 Supabase Project URL과 Anon Key를 아래에 기재해 주세요.
+// Vite 환경변수(.env) 파일에 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY로 기재하셔도 작동합니다.
 const SUPABASE_CONFIG = {
-  url: '',       // 직접 프로젝트 URL을 입력하려면 여기에 입력하세요. (예: 'https://xxxx.supabase.co')
-  anonKey: ''   // 직접 프로젝트 Anon Key를 입력하려면 여기에 입력하세요.
+  url: import.meta.env?.VITE_SUPABASE_URL || '실제_SUPABASE_URL_입력',
+  anonKey: import.meta.env?.VITE_SUPABASE_ANON_KEY || '실제_SUPABASE_ANON_KEY_입력'
 };
 
 let supabase = null;
 let isSupabaseConnected = false;
-
-const SQL_SCHEMA = `-- 1. Create comments table
-create table public.comments (
-  id text primary key,
-  author text not null,
-  content text not null,
-  timestamp bigint not null,
-  likes integer default 0,
-  parent_id text references public.comments(id) on delete cascade
-);
-
--- 2. Enable Row Level Security (RLS)
-alter table public.comments enable row level security;
-
--- 3. Setup RLS Policies (Allow public access for this simple guestbook feed)
-create policy "Allow public read access" on public.comments for select using (true);
-create policy "Allow public insert access" on public.comments for insert with check (true);
-create policy "Allow public update access" on public.comments for update using (true);
-
--- 4. Enable Realtime for the comments table
-alter publication supabase_realtime add table public.comments;
-`;
 
 document.addEventListener('DOMContentLoaded', async () => {
   // --- State ---
@@ -47,24 +27,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const charCountEl = document.getElementById('char-count');
   const commentList = document.getElementById('comment-list');
   const emptyState = document.getElementById('empty-state');
-  
-  // Setup elements
-  const dbStatusBtn = document.getElementById('db-status-btn');
-  const sqlTextarea = document.getElementById('sql-code-area');
 
   // --- Initializer ---
   async function init() {
-    if (sqlTextarea) sqlTextarea.value = SQL_SCHEMA;
     loadTheme();
     
-    // Connect Supabase
+    // Connect Supabase directly
     initSupabase();
-    updateDbStatusUI();
 
     if (isSupabaseConnected) {
       await loadSupabaseData();
       subscribeToComments();
     } else {
+      console.warn("Supabase credentials not configured. Running in simulation mode (offline).");
       loadOfflineData();
     }
 
@@ -74,32 +49,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Supabase Connection ---
   function initSupabase() {
-    let url = SUPABASE_CONFIG.url || localStorage.getItem('supabase_url');
-    let key = SUPABASE_CONFIG.anonKey || localStorage.getItem('supabase_key');
+    const url = SUPABASE_CONFIG.url;
+    const key = SUPABASE_CONFIG.anonKey;
 
-    if (url && key) {
+    if (url && key && url !== '실제_SUPABASE_URL_입력' && key !== '실제_SUPABASE_ANON_KEY_입력') {
       try {
         if (window.supabase) {
           supabase = window.supabase.createClient(url, key);
           isSupabaseConnected = true;
-          console.log("Supabase connected.");
+          console.log("Successfully connected to Supabase.");
         } else {
-          console.error("Supabase library not loaded.");
+          console.error("Supabase library not loaded from CDN.");
         }
       } catch (e) {
-        console.error("Failed to connect Supabase:", e);
+        console.error("Failed to connect to Supabase:", e);
       }
-    }
-  }
-
-  function updateDbStatusUI() {
-    if (!dbStatusBtn) return;
-    if (isSupabaseConnected) {
-      dbStatusBtn.className = 'icon-btn connected';
-      dbStatusBtn.setAttribute('title', 'Supabase 연결됨 (설정 변경)');
-    } else {
-      dbStatusBtn.className = 'icon-btn simulating';
-      dbStatusBtn.setAttribute('title', '연동 시뮬레이션 중 (설정 열기)');
     }
   }
 
@@ -136,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
 
-        // Sort replies ascending
+        // Sort replies ascending (oldest first)
         Object.keys(repliesMap).forEach(parentId => {
           repliesMap[parentId].sort((a, b) => a.timestamp - b.timestamp);
         });
@@ -153,9 +117,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (err) {
       console.error("Error loading comments from Supabase:", err);
-      showToast("데이터를 불러오지 못했습니다. SQL 스키마 생성을 완료했는지 확인해 주세요.");
+      showToast("데이터를 불러오지 못했습니다. SQL Editor에서 테이블 생성을 완료해 주세요.");
       isSupabaseConnected = false;
-      updateDbStatusUI();
       loadOfflineData();
     }
   }
@@ -188,6 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }
 
+  // --- Theme Management ---
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -545,15 +509,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Supabase Connection UI Handlers
-    if (dbStatusBtn) {
-      dbStatusBtn.addEventListener('click', openSupabaseSetupModal);
-    }
-    document.getElementById('btn-close-supabase-modal').addEventListener('click', closeSupabaseSetupModal);
-    document.getElementById('btn-close-setup-modal').addEventListener('click', closeSupabaseSetupModal);
-    document.getElementById('btn-connect-supabase').addEventListener('click', connectSupabaseAction);
-    document.getElementById('btn-copy-sql').addEventListener('click', copySqlToClipboard);
-
     setInterval(() => {
       const timeElements = document.querySelectorAll('.comment-time');
       timeElements.forEach(el => {
@@ -563,42 +518,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
     }, 60000);
-  }
-
-  // Supabase UI Modal Controllers
-  function openSupabaseSetupModal() {
-    document.getElementById('setup-supabase-url').value = localStorage.getItem('supabase_url') || '';
-    document.getElementById('setup-supabase-key').value = localStorage.getItem('supabase_key') || '';
-    document.getElementById('supabase-setup-modal').style.display = 'flex';
-  }
-
-  function closeSupabaseSetupModal() {
-    document.getElementById('supabase-setup-modal').style.display = 'none';
-  }
-
-  function copySqlToClipboard() {
-    const textarea = document.getElementById('sql-code-area');
-    textarea.select();
-    document.execCommand('copy');
-    showToast('SQL 스키마가 클립보드에 복사되었습니다.');
-  }
-
-  function connectSupabaseAction() {
-    const url = document.getElementById('setup-supabase-url').value.trim();
-    const key = document.getElementById('setup-supabase-key').value.trim();
-
-    if (!url || !key) {
-      localStorage.removeItem('supabase_url');
-      localStorage.removeItem('supabase_key');
-      showToast('연동이 해제되었습니다. 시뮬레이션 모드로 전환합니다.');
-      setTimeout(() => location.reload(), 1000);
-      return;
-    }
-
-    localStorage.setItem('supabase_url', url);
-    localStorage.setItem('supabase_key', key);
-    showToast('Supabase 설정을 완료했습니다. 새로고침 중...');
-    setTimeout(() => location.reload(), 1000);
   }
 
   // Simple Toast Popup Helper
