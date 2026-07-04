@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriGuard Simulation Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #080c14;
+      --bg-surface: #101622;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      
+      --color-naver: #03c75a;
+      --color-youtube: #ff0000;
+      --color-x: #1da1f2;
+      --color-facebook: #1877f2;
+      
+      --font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    /* Outer Wrapper */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Top Premium Banner */
+    .banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .banner-glow {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+      top: -150px;
+      right: -50px;
+      pointer-events: none;
+    }
+
+    .banner-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .banner-desc {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      max-width: 750px;
+      margin-bottom: 16px;
+    }
+
+    .instructions {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13.5px;
+      border: 1px solid var(--border-color);
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .instructions li strong {
+      color: #8b5cf6;
+    }
+
+    /* Interactive Control Panel */
+    .control-panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .control-panel h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-buttons-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-naver { background-color: var(--color-naver); color: white; }
+    .btn-youtube { background-color: var(--color-youtube); color: white; }
+    .btn-x { background-color: #111827; color: white; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-facebook { background-color: var(--color-facebook); color: white; }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Feed Generator Form */
+    .feed-creator-box {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .feed-creator-box select, .feed-creator-box input {
+      background: #1f2937;
+      border: 1px solid var(--border-color);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: var(--font-family);
+      font-size: 13.5px;
+    }
+
+    .feed-creator-box select:focus, .feed-creator-box input:focus {
+      outline: 1px solid #6366f1;
+    }
+
+    .feed-creator-box button {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .feed-creator-box button:hover {
+      transform: scale(1.03);
+    }
+
+    /* Simulation Playground Grid */
+    .grid-playground {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-playground {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Platform Simulator Container Styles */
+    .platform-container {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .platform-header {
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .platform-title {
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .platform-feed {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Simulator Feed Item (The critical wrapper scanned by content.js) */
+    .sim-feed-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: outline 0.3s ease, background 0.3s ease;
+    }
+
+    /* Simulator Platform Substyles */
+    /* 1. NAVER NEWS SIMULATOR */
+    #sim-naver .platform-header {
+      background-color: rgba(3, 199, 90, 0.05);
+      border-top: 4px solid var(--color-naver);
+    }
+    #sim-naver .platform-title { color: var(--color-naver); }
+    #sim-naver .sim-feed-item {
+      border-left: 3px solid var(--color-naver);
+    }
+    .naver-media {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-naver);
+    }
+    .naver-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    .naver-title:hover {
+      text-decoration: underline;
+    }
+    .naver-summary {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 2. YOUTUBE SIMULATOR */
+    #sim-youtube .platform-header {
+      background-color: rgba(255, 0, 0, 0.05);
+      border-top: 4px solid var(--color-youtube);
+    }
+    #sim-youtube .platform-title { color: #ffffff; }
+    #sim-youtube .platform-title span { color: var(--color-youtube); }
+    .youtube-thumbnail-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .youtube-thumbnail-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .youtube-duration {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.8);
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .youtube-meta {
+      display: flex;
+      gap: 12px;
+    }
+    .youtube-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #374151;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .youtube-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-grow: 1;
+    }
+    .youtube-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.4;
+    }
+    .youtube-author {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* 3. X (TWITTER) SIMULATOR */
+    #sim-x .platform-header {
+      background-color: rgba(255, 255, 255, 0.02);
+      border-top: 4px solid #ffffff;
+    }
+    #sim-x .platform-title { color: #ffffff; }
+    .x-author-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .x-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .x-name-box {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .x-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .x-handle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .x-text {
+      font-size: 13.5px;
+      color: #e5e7eb;
+    }
+    .x-media-box {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      max-height: 200px;
+    }
+    .x-media-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .x-actions-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* 4. FACEBOOK SIMULATOR */
+    #sim-facebook .platform-header {
+      background-color: rgba(24, 119, 242, 0.05);
+      border-top: 4px solid var(--color-facebook);
+    }
+    #sim-facebook .platform-title { color: var(--color-facebook); }
+    .fb-header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .fb-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--color-facebook);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+    .fb-author-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .fb-author {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .fb-time {
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .fb-text {
+      font-size: 13px;
+      color: #f3f4f6;
+    }
+    .fb-media {
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 220px;
+    }
+    .fb-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .fb-actions {
+      display: flex;
+      justify-content: space-around;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 6px 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* General Badge Insert Container */
+    .sim-badge-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Premium Header Banner -->
+    <header class="banner">
+      <div class="banner-glow"></div>
+      <h1 class="banner-title">VeriGuard Test Workbench</h1>
+      <p class="banner-desc">
+        이곳은 네이버 뉴스, 유튜브, X(트위터), 페이스북 등의 소셜 피드 레이아웃을 정교하게 모사한 테스트 페이지입니다. 
+        크롬 확장 프로그램(VeriGuard)이 활성화되어 있을 때, 아래 피드 내용 중 의심스러운 가짜뉴스나 딥페이크 요소가 실시간으로 분석되어 경고 배지와 테두리 하이라이트가 심어집니다.
+      </p>
+      
+      <div class="instructions">
+        <ol>
+          <li><strong>개발자 모드 확장 프로그램 등록:</strong> 크롬 주소창에 <code>chrome://extensions/</code>를 입력한 뒤 <strong>'개발자 모드'</strong>를 활성화하고, <code>Load unpacked</code>를 클릭해 <code>extension</code> 폴더를 선택합니다.</li>
+          <li><strong>API 서버 연동 (선택):</strong> <code>node mock-server/server.js</code>를 실행하여 API 서버를 켜면 백엔드 분석 결과가 실시간으로 반영됩니다. (서버가 꺼진 경우 확장 프로그램 내부의 <strong>로컬 Heuristic 매처</strong>로 동작합니다.)</li>
+          <li><strong>동적 포스팅 시연:</strong> 아래 제어 패널에서 가짜뉴스나 딥페이크 키워드를 활용해 새 게시글을 추가해 보세요. <code>MutationObserver</code>가 신규 삽입을 즉시 가로채 실시간 감지 프로세스를 수행합니다!</li>
+        </ol>
+      </div>
+    </header>
+
+    <!-- Dynamic Controller Panel -->
+    <section class="control-panel">
+      <h2>🛠️ 동적 콘텐츠 테스터</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+        원하는 가짜뉴스나 딥페이크 이벤트를 클릭하면 즉시 아래 각 소셜 플랫폼 피드에 삽입되며, 확장 프로그램의 <strong>실시간 감지 기능</strong>을 확인할 수 있습니다.
+      </p>
+      
+      <div class="control-buttons-row">
+        <button class="btn btn-naver" onclick="injectPreset('naver', 'fake')">🟢 네이버: UFO 상륙 가짜뉴스 삽입</button>
+        <button class="btn btn-youtube" onclick="injectPreset('youtube', 'deepfake')">🔴 유튜브: 딥페이크 모의 비디오 삽입</button>
+        <button class="btn btn-x" onclick="injectPreset('x', 'fake')">⚫ X(트위터): 일루미나티 음모론 트윗 삽입</button>
+        <button class="btn btn-facebook" onclick="injectPreset('facebook', 'deepfake')">🔵 페이스북: 딥페이크 합성 사진 포스트 삽입</button>
+      </div>
+
+      <!-- Freeform custom card creator -->
+      <div class="feed-creator-box">
+        <select id="creator-platform">
+          <option value="naver">네이버 뉴스</option>
+          <option value="youtube">유튜브</option>
+          <option value="x">X (트위터)</option>
+          <option value="facebook">페이스북</option>
+        </select>
+        <input type="text" id="creator-text" placeholder="자유롭게 본문을 입력해보세요 (예: '외계인이 서울에 침공했다!')" value="">
+        <button onclick="createCustomFeed()">🚀 실시간 포스팅</button>
+      </div>
+    </section>
+
+    <!-- Social Media Simulators Grid -->
+    <div class="grid-playground">
+      
+      <!-- 1. Naver News Simulator -->
+      <div class="platform-container" id="sim-naver">
+        <div class="platform-header">
+          <span class="platform-title">NAVER News</span>
+          <span class="naver-media">종합 속보</span>
+        </div>
+        <div class="platform-feed" id="feed-naver">
+          
+          <!-- Normal Item -->
+          <div class="sim-feed-item">
+            <span class="naver-media">테크타임즈</span>
+            <div class="sim-badge-container">
+              <a class="naver-title sim-title">국내 연구진, 차세대 상온 초전도 물질 합성 및 특성 규명 발표</a>
+            </div>
+            <p class="naver-summary sim-text">한국 기초과학연구원 및 대학 공동 연구팀이 상온 극초반 환경에서 저항이 완전히 사라지는 독특한 상온 상압 전도성 합물을 개발하는 데 성공했다고 발표했습니다.</p>
+          </div>
+
+          <!-- Fake News Item -->
+          <div class="sim-feed-item">
+            <span class="naver-media">코리아비밀리포트</span>
+            <div class="sim-badge-container">
+              <a class="naver-title sim-title">충격 단독! 외계인 UFO 서울 광화문 상륙, 정부와 비밀공작 협약 맺어</a>
+            </div>
+            <p class="naver-summary sim-text">어제 새벽 서울 세종대로 사거리 한복판에 기체 형태의 외계 비행물체가 하강했으며, 극비리에 정부 요인들과 접촉하여 비밀 우주 자원 기지 설치와 관련된 비밀 조약을 맺은 정보가 유출되었습니다.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2. YouTube Simulator -->
+      <div class="platform-container" id="sim-youtube">
+        <div class="platform-header">
+          <span class="platform-title">You<span>Tube</span></span>
+        </div>
+        <div class="platform-feed" id="feed-youtube">
+          
+          <!-- Normal Video -->
+          <div class="sim-feed-item">
+            <div class="youtube-thumbnail-wrapper">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=480&auto=format&fit=crop&q=80" alt="정상 푸드 영상">
+              <span class="youtube-duration">12:34</span>
+            </div>
+            <div class="youtube-meta">
+              <div class="youtube-avatar">K</div>
+              <div class="youtube-details">
+                <div class="sim-badge-container">
+                  <div class="youtube-title sim-title">실패 없이 10분 만에 완성하는 인생 파스타 황금 레시피 공개</div>
+                </div>
+                <span class="youtube-author sim-text">쿡킹클래스 • 조회수 14만회 • 2일 전</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deepfake Video -->
+          <div class="sim-feed-item">
+            <div class="youtube-thumbnail-wrapper">
+              <!-- image has deepfake path to trigger signature analyzer -->
+              <img class="sim-image" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=80&sig=deepfake_face_swap_preview" alt="딥페이크 모의">
+              <span class="youtube-duration">03:45</span>
+            </div>
+            <div class="youtube-meta">
+              <div class="youtube-avatar" style="background-color: #7c3aed;">DF</div>
+              <div class="youtube-details">
+                <div class="sim-badge-container">
+                  <div class="youtube-title sim-title">트럼프와 일론 머스크가 함께 노래하고 춤추는 충격 영상 (얼굴 합성)</div>
+                </div>
+                <span class="youtube-author sim-text">합성마스터AI • 조회수 92만회 • 5시간 전</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 3. X (Twitter) Simulator -->
+      <div class="platform-container" id="sim-x">
+        <div class="platform-header">
+          <span class="platform-title">X Feed</span>
+        </div>
+        <div class="platform-feed" id="feed-x">
+          
+          <!-- Normal Tweet -->
+          <div class="sim-feed-item">
+            <div class="x-author-row">
+              <div class="x-avatar">A</div>
+              <div class="x-name-box">
+                <div class="sim-badge-container">
+                  <span class="x-name">Alice In Tech</span>
+                </div>
+                <span class="x-handle">@alice_dev</span>
+              </div>
+            </div>
+            <div class="x-text sim-text">
+              오늘 새 웹 프로젝트 스켈레톤 코드를 완성했어요! 바닐라 자바스크립트와 아름다운 글래스모피즘 CSS 테마를 올리니 정말 마음에 드네요. 다들 좋은 저녁 되세요! ✨💻
+            </div>
+            <div class="x-actions-row">
+              <span>💬 12</span><span>🔁 8</span><span>❤️ 45</span><span>📊 1.2K</span>
+            </div>
+          </div>
+
+          <!-- Fake Tweet -->
+          <div class="sim-feed-item">
+            <div class="x-author-row">
+              <div class="x-avatar" style="background:#dc2626;">👁️</div>
+              <div class="x-name-box">
+                <div class="sim-badge-container">
+                  <span class="x-name">진실추적 연합</span>
+                </div>
+                <span class="x-handle">@truth_tracker</span>
+              </div>
+            </div>
+            <div class="x-text sim-text">
+              경악! 일루미나티 비밀 회원들이 어제 스위스 제네바 지하 벙커에서 기밀 회동을 열어 백신 칩 제어 코드를 전 세계에 배포하자는 가짜 협약을 마쳤다는 폭로 파일이 해킹되었습니다. 이것이 바로 정부 음모 배후의 진실입니다! #충격 #일루미나티 #비밀회동
+            </div>
+            <div class="x-actions-row">
+              <span>💬 520</span><span>🔁 982</span><span>❤️ 3.1K</span><span>📊 450K</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 4. Facebook Simulator -->
+      <div class="platform-container" id="sim-facebook">
+        <div class="platform-header">
+          <span class="platform-title">facebook</span>
+        </div>
+        <div class="platform-feed" id="feed-facebook">
+          
+          <!-- Normal Post -->
+          <div class="sim-feed-item">
+            <div class="fb-header">
+              <div class="fb-avatar">정</div>
+              <div class="fb-author-info">
+                <div class="sim-badge-container">
+                  <span class="fb-author">정보민</span>
+                </div>
+                <span class="fb-time">어제 오후 5:21</span>
+              </div>
+            </div>
+            <div class="fb-text sim-text">
+              오늘 친구들이랑 북한산 등산 다녀왔습니다! 날씨가 정말 맑고 시원해서 정상에서 바라보는 풍경이 끝내줬네요. 서울 전경이 한눈에 들어오는 걸 보니 쌓였던 피로가 싹 가십니다. 주말 등산 강추해요!
+            </div>
+            <div class="fb-media">
+              <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=480&auto=format&fit=crop&q=80" alt="등산 풍경">
+            </div>
+            <div class="fb-actions">
+              <span>👍 좋아요</span><span>💬 댓글 달기</span><span>➡️ 공유하기</span>
+            </div>
+          </div>
+
+          <!-- Deepfake Post -->
+          <div class="sim-feed-item">
+            <div class="fb-header">
+              <div class="fb-avatar" style="background:#7c3aed;">AI</div>
+              <div class="fb-author-info">
+                <div class="sim-badge-container">
+                  <span class="fb-author">미디어워처 포스트</span>
+                </div>
+                <span class="fb-time">방금 전</span>
+              </div>
+            </div>
+            <div class="fb-text sim-text">
+              ⚠️ 긴급 경고: 해외 유명 축구선수의 얼굴과 몸을 정교하게 합성하여 조작한 딥페이크(Deepfake) 사기성 광고 영상이 SNS를 통해 유포되고 있습니다. 가상 얼굴 생성 AI가 악용된 사례이므로 해당 링크 클릭 시 각별히 주의하시기 바랍니다.
+            </div>
+            <div class="fb-media">
+              <img class="sim-image" src="https://images.unsplash.com/photo-1597733336794-12d05021d510?w=480&auto=format&fit=crop&q=80&sig=deepfake_face_swap_fb_ad" alt="딥페이크 검출 이미지">
+            </div>
+            <div class="fb-actions">
+              <span>👍 좋아요</span><span>💬 댓글 달기</span><span>➡️ 공유하기</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Presets definitions for simulated injects
+    const PRESETS = {
+      naver: {
+        media: '속보독점',
+        title: '충격! 지구평평 배후 일루미나티 음모론 폭로 문서 입수',
+        summary: '세계 항공사 기밀 합의 문건이 해커에 의해 노출되었습니다. 정부 음모에 의해 남극 해안에 군사 장벽을 설치하고 지구평평 비밀을 철저히 은폐하여 외계 비행체가 비밀리에 출입하고 있었다는 주장입니다.'
+      },
+      youtube: {
+        title: '윤 대통령 댄스 챌린지 원본 영상 유출 의혹 (딥페이크 합성 아티팩트 감지)',
+        author: 'AI공작소 • 조회수 2.5만회 • 방금 전',
+        image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=480&auto=format&fit=crop&q=80&sig=deepfake_pres_swap',
+        avatar: 'A'
+      },
+      x: {
+        name: '비밀 폭로 프로젝트',
+        handle: '@secret_unveiled',
+        text: '경악할 소식! 외계인 우주선 잔해가 극비 정부 기지에서 복제되고 있으며, 이는 지구 전체를 감시하려는 일루미나티의 비밀 회동 결과 백신 칩과 연동되어 조작된다는 강력한 물리적 증거가 확인되었습니다! #aliens #conspiracy #shocking',
+        avatar: '👽'
+      },
+      facebook: {
+        author: '미래융합기술 뉴스',
+        time: '방금 전',
+        text: '독점 단독보도: 헐리우드 최고 여배우의 가상 얼굴 복제 및 불법 딥페이크(deepfake) 영상 제작 및 합성 유통 경로를 조사한 결과, 유포자는 일반 대학생 단체로 드러났습니다. AI 생성 페이스스왑 기술이 이제 일반인에게도 손쉽게 퍼져 범죄로 악용되고 있습니다.',
+        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=480&auto=format&fit=crop&q=80&sig=deepfake_actress_swap',
+        avatar: 'F'
+      }
+    };
+
+    function injectPreset(platform, type) {
+      const data = PRESETS[platform];
+      let itemHTML = '';
+
+      if (platform === 'naver') {
+        itemHTML = `
+          <span class="naver-media">${data.media}</span>
+          <div class="sim-badge-container">
+            <a class="naver-title sim-title">${data.title}</a>
+          </div>
+          <p class="naver-summary sim-text">${data.summary}</p>
+        `;
+      } else if (platform === 'youtube') {
+        itemHTML = `
+          <div class="youtube-thumbnail-wrapper">
+            <img class="sim-image" src="${data.image}" alt="유튜브 썸네일">
+            <span class="youtube-duration">02:10</span>
+          </div>
+          <div class="youtube-meta">
+            <div class="youtube-avatar" style="background-color: #ef4444;">${data.avatar}</div>
+            <div class="youtube-details">
+              <div class="sim-badge-container">
+                <div class="youtube-title sim-title">${data.title}</div>
+              </div>
+              <span class="youtube-author sim-text">${data.author}</span>
+            </div>
+          </div>
+        `;
+      } else if (platform === 'x') {
+        itemHTML = `
+          <div class="x-author-row">
+            <div class="x-avatar" style="background:#7c3aed;">${data.avatar}</div>
+            <div class="x-name-box">
+              <div class="sim-badge-container">
+                <span class="x-name">${data.name}</span>
+              </div>
+              <span class="x-handle">${data.handle}</span>
+            </div>
+          </div>
+          <div class="x-text sim-text">${data.text}</div>
+          <div class="x-actions-row">
+            <span>💬 20</span><span>🔁 315</span><span>❤️ 854</span><span>📊 15.6K</span>
+          </div>
+        `;
+      } else if (platform === 'facebook') {
+        itemHTML = `
+          <div class="fb-header">
+            <div class="fb-avatar" style="background:#1877f2;">${data.avatar}</div>
+            <div class="fb-author-info">
+              <div class="sim-badge-container">
+                <span class="fb-author">${data.author}</span>
+              </div>
+              <span class="fb-time">${data.time}</span>
+            </div>
+          </div>
+          <div class="fb-text sim-text">${data.text}</div>
+          <div class="fb-media">
+            <img class="sim-image" src="${data.image}" alt="페이스북 미디어">
+          </div>
+          <div class="fb-actions">
+            <span>👍 좋아요</span><span>💬 댓글 달기</span><span>➡️ 공유하기</span>
+          </div>
+        `;
+      }
+
+      const feedContainer = document.getElementById(`feed-${platform}`);
+      const newItem = document.createElement('div');
+      newItem.className = 'sim-feed-item';
+      newItem.innerHTML = itemHTML;
+
+      // Prepend to show on top
+      if (feedContainer.firstChild) {
+        feedContainer.insertBefore(newItem, feedContainer.firstChild);
+      } else {
+        feedContainer.appendChild(newItem);
+      }
+      
+      console.log(`[Simulator] Injected preset for ${platform}`);
+    }
+
+    function createCustomFeed() {
+      const platform = document.getElementById('creator-platform').value;
+      const text = document.getElementById('creator-text').value.trim();
+
+      if (!text) {
+        alert('포스트에 담을 본문 내용을 입력해주세요!');
+        return;
+      }
+
+      let itemHTML = '';
+
+      if (platform === 'naver') {
+        itemHTML = `
+          <span class="naver-media">실시간 제보</span>
+          <div class="sim-badge-container">
+            <a class="naver-title sim-title">${text}</a>
+          </div>
+          <p class="naver-summary sim-text">사용자가 임의로 작성하여 실시간 등록한 긴급 제보 피드입니다. 신속한 확인을 위해 분석을 시작합니다.</p>
+        `;
+      } else if (platform === 'youtube') {
+        itemHTML = `
+          <div class="youtube-thumbnail-wrapper">
+            <img class="sim-image" src="https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=480&auto=format&fit=crop&q=80&sig=deepfake_custom_sim" alt="커스텀 유튜브">
+            <span class="youtube-duration">05:00</span>
+          </div>
+          <div class="youtube-meta">
+            <div class="youtube-avatar" style="background:#10b981;">U</div>
+            <div class="youtube-details">
+              <div class="sim-badge-container">
+                <div class="youtube-title sim-title">${text}</div>
+              </div>
+              <span class="youtube-author sim-text">실시간 업로드 • 조회수 1회 • 방금 전</span>
+            </div>
+          </div>
+        `;
+      } else if (platform === 'x') {
+        itemHTML = `
+          <div class="x-author-row">
+            <div class="x-avatar" style="background:#111827;">💡</div>
+            <div class="x-name-box">
+              <div class="sim-badge-container">
+                <span class="x-name">익명 제보자</span>
+              </div>
+              <span class="x-handle">@anonymous_user</span>
+            </div>
+          </div>
+          <div class="x-text sim-text">${text}</div>
+          <div class="x-actions-row">
+            <span>💬 0</span><span>🔁 0</span><span>❤️ 0</span><span>📊 1</span>
+          </div>
+        `;
+      } else if (platform === 'facebook') {
+        itemHTML = `
+          <div class="fb-header">
+            <div class="fb-avatar" style="background:#6b7280;">U</div>
+            <div class="fb-author-info">
+              <div class="sim-badge-container">
+                <span class="fb-author">일반 유저</span>
+              </div>
+              <span class="fb-time">방금 전</span>
+            </div>
+          </div>
+          <div class="fb-text sim-text">${text}</div>
+          <div class="fb-media">
+            <img class="sim-image" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=80&sig=custom_user_media" alt="커스텀 이미지">
+          </div>
+          <div class="fb-actions">
+            <span>👍 좋아요</span><span>💬 댓글 달기</span><span>➡️ 공유하기</span>
+          </div>
+        `;
+      }
+
+      const feedContainer = document.getElementById(`feed-${platform}`);
+      const newItem = document.createElement('div');
+      newItem.className = 'sim-feed-item';
+      newItem.innerHTML = itemHTML;
+
+      // Prepend
+      if (feedContainer.firstChild) {
+        feedContainer.insertBefore(newItem, feedContainer.firstChild);
+      } else {
+        feedContainer.appendChild(newItem);
+      }
+
+      // Reset text input
+      document.getElementById('creator-text').value = '';
+      console.log(`[Simulator] Injected custom post for ${platform}`);
+    }
+  </script>
+</body>
+</html>

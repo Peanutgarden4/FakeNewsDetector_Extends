@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FakeNewsDecter Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="glass-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-glow"></div>
+        <span class="logo-shield">🛡️</span>
+        <h1 class="brand-title">FakeNewsDecter</h1>
+      </div>
+      <div class="status-indicator">
+        <span class="pulse-dot"></span>
+        <span class="status-text" id="status-mode">보호 중</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-dashboard">대시보드</button>
+      <button class="tab-btn" data-tab="tab-settings">설정</button>
+      <button class="tab-btn" data-tab="tab-logs">이 페이지에서</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Tab 1: Dashboard -->
+      <section id="tab-dashboard" class="tab-content active">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card total-scanned">
+            <span class="stat-label">스캔한 콘텐츠</span>
+            <span class="stat-value" id="stat-scanned">0</span>
+            <div class="stat-progress-bar">
+              <div class="progress-fill fill-scanned" style="width: 100%"></div>
+            </div>
+          </div>
+          
+          <div class="stat-card flagged-fake">
+            <span class="stat-label">가짜뉴스 감지</span>
+            <span class="stat-value" id="stat-fake">0</span>
+            <div class="stat-progress-bar">
+              <div class="progress-fill fill-fake" id="bar-fake" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="stat-card flagged-deepfake">
+            <span class="stat-label">딥페이크 블록</span>
+            <span class="stat-value" id="stat-deepfake">0</span>
+            <div class="stat-progress-bar">
+              <div class="progress-fill fill-deepfake" id="bar-deepfake" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Status Card -->
+        <div class="interactive-card status-card">
+          <div class="card-glow"></div>
+          <h3>보호 상태</h3>
+          <p id="protection-status-desc">인터넷 서핑 중 실시간으로 유해/허위 피드를 추적하고 있습니다.</p>
+          <div class="action-row">
+            <button id="quick-toggle" class="btn btn-gradient">실시간 스캔 일시 정지</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 2: Settings -->
+      <section id="tab-settings" class="tab-content">
+        <div class="settings-group">
+          <h3>기능 활성화</h3>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">실시간 자동 분석</span>
+              <span class="setting-desc">페이지 로드 시 가짜뉴스/딥페이크 자동 분석</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-scan" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">가짜뉴스 빨간 하이라이트</span>
+              <span class="setting-desc">위험 기사/피드에 붉은색 테두리 하이라이트 추가</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-highlight" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">경고 배지 심기</span>
+              <span class="setting-desc">기사 제목 옆에 가짜뉴스/딥페이크 점수 배지 표시</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-badge" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group" style="margin-top: 16px;">
+          <h3>데이터 관리</h3>
+          <div class="setting-action-row">
+            <button id="btn-clear-stats" class="btn btn-secondary-danger">통계 및 로그 초기화</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 3: Logs -->
+      <section id="tab-logs" class="tab-content">
+        <div class="log-list-header">
+          <h3>이 페이지에서 감지된 의심 사례</h3>
+          <span class="log-count-badge" id="log-count">0개</span>
+        </div>
+        <div class="log-container" id="log-list">
+          <!-- Dynamically inserted logs -->
+          <div class="empty-logs" id="empty-logs-view">
+            <div class="empty-icon">🛡️</div>
+            <p>검출된 가짜뉴스나 딥페이크 내역이 없습니다.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span>FakeNewsDecter v1.0.0</span>
+      <span>•</span>
+      <span>Real-time Anti-Fake Heuristics</span>
+    </footer>
+  </div>
+
+  <!-- Detail Log Modal -->
+  <div id="log-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">감지된 가짜뉴스 내역</h3>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-log-list">
+        <!-- Log items loaded dynamically -->
+      </div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

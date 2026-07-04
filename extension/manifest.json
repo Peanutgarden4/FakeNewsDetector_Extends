@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "FakeNewsDecter - 실시간 가짜뉴스 & 딥페이크 검출기",
+  "version": "1.0.0",
+  "description": "네이버 뉴스, 유튜브, X(트위터), 페이스북 등의 피드를 실시간으로 분석하여 가짜뉴스와 딥페이크를 감지하고 경고합니다.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FakeNewsDecter Dashboard"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
